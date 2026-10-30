@@ -2,6 +2,10 @@ const express = require("express");
 const dotenv = require("dotenv");
 const OpenAI = require("openai");
 
+// WhatsApp Baileys
+const makeWASocket = require("@whiskeysockets/baileys").default;
+const { useMultiFileAuthState } = require("@whiskeysockets/baileys");
+
 dotenv.config();
 
 const app = express();
