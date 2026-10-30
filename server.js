@@ -1,3 +1,4 @@
+
 const express = require("express");
 const dotenv = require("dotenv");
 const OpenAI = require("openai");
@@ -34,6 +35,34 @@ function getOpenAI() {
   }
 
   return openai;
+}
+
+function extractText(message) {
+  let content = message.message;
+
+  if (!content) return null;
+
+  // Handle ephemeral and view-once messages
+  while (
+    content.ephemeralMessage ||
+    content.viewOnceMessage ||
+    content.viewOnceMessageV2
+  ) {
+    content =
+      content.ephemeralMessage?.message ||
+      content.viewOnceMessage?.message ||
+      content.viewOnceMessageV2?.message;
+    if (!content) return null;
+  }
+
+  return (
+    content.conversation ||
+    content.extendedTextMessage?.text ||
+    content.imageMessage?.caption ||
+    content.videoMessage?.caption ||
+    content.documentMessage?.caption ||
+    null
+  );
 }
 
 app.get("/", (req, res) => {
@@ -107,7 +136,9 @@ app.get("/qr", (req, res) => {
     return res.status(404).send("QR Code এখনো তৈরি হয়নি।");
   }
 
-  res.type("png").send(Buffer.from(qrImage.split(",")[1], "base64"));
+  res.type("png").send(
+    Buffer.from(qrImage.split(",")[1], "base64")
+  );
 });
 
 app.get("/status", (req, res) => {
@@ -128,7 +159,13 @@ app.post("/ask", async (req, res) => {
 
     const response = await getOpenAI().chat.completions.create({
       model: "gpt-4o-mini",
-      messages: [{ role: "user", content: question }],
+      messages: [
+        {
+          role: "system",
+          content: "তুমি একজন বন্ধুসুলভ বাংলা AI সহকারী। সহজ ও সুন্দর বাংলায় উত্তর দেবে।",
+        },
+        { role: "user", content: question },
+      ],
     });
 
     res.json({
@@ -198,6 +235,7 @@ async function startWhatsApp() {
           }, 5000);
         } else {
           connectionStatus = "Logged out. Please reconnect.";
+          console.log("WhatsApp logged out. Scan a new QR code.");
         }
       }
     });
@@ -213,14 +251,17 @@ async function startWhatsApp() {
         if (
           !jid ||
           jid === "status@broadcast" ||
-          jid.endsWith("@g.us")
-        ) continue;
+          jid.endsWith("@g.us") ||
+          jid.endsWith("@broadcast")
+        ) {
+          continue;
+        }
 
-        const text =
-          message.message.conversation ||
-          message.message.extendedTextMessage?.text;
+        const userText = extractText(message);
 
-        if (!text) continue;
+        if (!userText || !userText.trim()) continue;
+
+        console.log("Incoming private message received.");
 
         try {
           const response = await getOpenAI().chat.completions.create({
@@ -230,20 +271,28 @@ async function startWhatsApp() {
                 role: "system",
                 content: "তুমি একজন বন্ধুসুলভ বাংলা AI সহকারী। সহজ ও সুন্দর বাংলায় উত্তর দেবে।",
               },
-              { role: "user", content: text },
+              { role: "user", content: userText },
             ],
           });
 
           const answer = response.choices[0].message.content;
 
-          await sock.sendMessage(jid, { text: answer });
+          if (!answer) {
+            throw new Error("AI returned an empty response");
+          }
+
+          if (sock) {
+            await sock.sendMessage(jid, { text: answer });
+            console.log("AI reply sent successfully.");
+          }
         } catch (error) {
           console.error("Reply Error:", error.message);
         }
       }
     });
+
   } catch (error) {
-    console.error("WhatsApp Startup Error:", error);
+    console.error("WhatsApp Startup Error:", error.message);
     starting = false;
     sock = null;
     connectionStatus = "Connection error. Retrying...";
