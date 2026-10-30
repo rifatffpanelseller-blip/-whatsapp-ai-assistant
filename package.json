@@ -1,5 +1,4 @@
-
-{
+ {
   "name": "whatsapp-ai-assistant",
   "version": "1.0.0",
   "description": "WhatsApp AI Assistant",
@@ -10,6 +9,7 @@
   "dependencies": {
     "express": "^4.21.2",
     "dotenv": "^16.4.7",
-    "openai": "^4.77.0"
+    "openai": "^4.77.0",
+    "@whiskeysockets/baileys": "6.7.24"
   }
 }
