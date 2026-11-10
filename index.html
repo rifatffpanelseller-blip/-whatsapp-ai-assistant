@@ -4,10 +4,15 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>নাম্বার চেকলিস্ট</title>
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#ffffff">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="নাম্বার চেকলিস্ট">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
 <style>
-:root{--bg:#f6f7f9;--card:#fff;--text:#1a1d21;--muted:#6b7280;--line:#e5e7eb;--accent:#16a34a;--accentbg:#dcfce7;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
-@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#111315;--card:#1b1e22;--text:#e8eaed;--muted:#9aa0a6;--line:#2c3036;--accent:#4ade80;--accentbg:#14301f}}
-:root[data-theme="dark"]{--bg:#111315;--card:#1b1e22;--text:#e8eaed;--muted:#9aa0a6;--line:#2c3036;--accent:#4ade80;--accentbg:#14301f}
+:root{--bg:#ffffff;--card:#f5f8fc;--text:#0f172a;--muted:#5b6b82;--line:#dbe3ee;--accent:#1e40af;--accentbg:#e4ecfb;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
 html{scroll-padding-top:env(safe-area-inset-top,0px)}
 body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,"Noto Sans Bengali",sans-serif}
 .wrap{max-width:560px;margin:0 auto;padding:12px}
@@ -23,7 +28,7 @@ button.on{background:var(--accent);color:#fff;border-color:var(--accent)}
 ul{list-style:none;margin:8px 0 0;padding:0}
 li{display:flex;align-items:center;gap:12px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px;margin-bottom:6px;cursor:pointer;-webkit-tap-highlight-color:transparent}
 li.done{background:var(--accentbg)}
-li.done .num{text-decoration:line-through;color:var(--muted)}
+li.done .num,li.nf .num{text-decoration:line-through;text-decoration-color:#d4a017;text-decoration-thickness:2.5px;color:var(--muted)}
 input[type=checkbox]{width:24px;height:24px;accent-color:var(--accent);flex:none}
 .idx{color:var(--muted);font-size:12px;width:28px;flex:none;text-align:right}
 .num{flex:1;font-size:17px;font-variant-numeric:tabular-nums}
@@ -41,6 +46,18 @@ li{flex-wrap:wrap}
 .ticks label{align-items:flex-start}
 .ticks label{display:flex;align-items:center;gap:6px;cursor:pointer}
 .ticks input{width:20px;height:20px}
+.ticks label:nth-child(n+5){grid-column:1/-1}
+.ticks label:last-child{font-weight:600}
+@keyframes shine{from{background-position:150% 0}to{background-position:-50% 0}}
+h1,.stat,.hint,.add summary,.ticks label,li:not(.done):not(.nf) .num,.tabs button span,#reset span,#addbtn span{background-image:linear-gradient(110deg,var(--b,var(--text)) 28%,#f0b400 44%,#b87900 50%,#f0b400 56%,var(--b,var(--text)) 72%);background-size:250% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;-webkit-text-fill-color:transparent;animation:shine 2.4s linear infinite}
+.stat,.hint{--b:var(--muted)}
+body,button,input,textarea,.stat,.hint,.ticks label{font-weight:800}
+.num,.add summary,h1{font-weight:900}
+.ticks label:last-child{font-weight:900}
+h1{background-image:linear-gradient(110deg,#8a6508 26%,#ffd23f 46%,#fff0a0 50%,#ffd23f 54%,#8a6508 74%)}
+.tabs button.on span{background:none;-webkit-text-fill-color:#fff;color:#fff;animation:none}
+.warn{-webkit-text-fill-color:#d97706}
+@media (prefers-reduced-motion:reduce){h1,.stat,.hint,.add summary,.ticks label,li .num,.tabs button span,#reset span,#addbtn span{animation:none}}
 .warn{display:block;font-size:11px;color:#d97706;font-weight:600}
 li.bad .wa{opacity:.55}
 .wb{position:relative;background:#0b6b5e}
@@ -61,14 +78,19 @@ li.bad .wa{opacity:.55}
 <textarea id="msg" placeholder="পাঠানোর মেসেজ"></textarea>
 <div class="hint">WhatsApp বোতামে চাপলে এই মেসেজসহ চ্যাট খুলবে। imo বোতামে চাপলে মেসেজ কপি হয়ে imo অ্যাপ খুলবে, সেখানে পেস্ট করুন।</div>
 <div class="tabs">
-<button data-f="all" class="on">সব</button>
-<button data-f="todo">বাকি</button>
-<button data-f="done">ব্যবহৃত</button>
+<button data-f="all" class="on"><span>সব</span></button>
+<button data-f="todo"><span>বাকি</span></button>
+<button data-f="i"><span>imo-তে নক দিয়েছি</span></button>
+<button data-f="ni"><span>imo-তে পাই নাই</span></button>
+<button data-f="w"><span>WhatsApp-এ নক দিয়েছি</span></button>
+<button data-f="nw"><span>WhatsApp-এ পাই নাই</span></button>
+<button data-f="none"><span>কোনো কিছু খুঁজে পাই নাই</span></button>
+<button data-f="c"><span>সব কমপ্লিট</span></button>
 </div>
 </header>
-<details class="add"><summary>➕ নতুন নাম্বার যোগ করুন</summary><textarea id="newnums" placeholder="এখানে নাম্বার পেস্ট করুন, প্রতি লাইনে একটা"></textarea><button id="addbtn">যোগ করুন</button> <span id="addmsg" class="hint"></span></details>
+<details class="add"><summary>➕ নতুন নাম্বার যোগ করুন</summary><textarea id="newnums" placeholder="এখানে নাম্বার পেস্ট করুন, প্রতি লাইনে একটা"></textarea><button id="addbtn"><span>যোগ করুন</span></button> <span id="addmsg" class="hint"></span></details>
 <ul id="list"></ul>
-<div class="foot"><button id="reset">সব টিক মুছুন</button></div>
+<div class="foot"><button id="reset"><span>সব টিক মুছুন</span></button></div>
 </div>
 <script>
 const RAW=`+88 01907335495
@@ -221,13 +243,18 @@ let W=new Set(),I=new Set();
 try{W=new Set(JSON.parse(localStorage.getItem("numchecklist-w")||"[]"));I=new Set(JSON.parse(localStorage.getItem("numchecklist-i")||"[]"))}catch(e){}
 let NI=new Set(),NW=new Set(),IO=new Set(),WO=new Set();
 try{NI=new Set(JSON.parse(localStorage.getItem("numchecklist-ni")||"[]"));NW=new Set(JSON.parse(localStorage.getItem("numchecklist-nw")||"[]"));IO=new Set(JSON.parse(localStorage.getItem("numchecklist-io")||"[]"));WO=new Set(JSON.parse(localStorage.getItem("numchecklist-wo")||"[]"))}catch(e){}
-function setOf(k){return {w:W,i:I,ni:NI,nw:NW,io:IO,wo:WO}[k]}
-const ALL=[W,I,NI,NW];
-function isDone(n){return ALL.every(s=>s.has(n))}
+let C=new Set();
+try{C=new Set(JSON.parse(localStorage.getItem("numchecklist-c")||"[]"))}catch(e){}
+const XK=["m1i","m2i","m1w","m1b","m2b","none"],X={};
+XK.forEach(k=>{X[k]=new Set();try{X[k]=new Set(JSON.parse(localStorage.getItem("numchecklist-"+k)||"[]"))}catch(e){}});
+function setOf(k){return X[k]||{w:W,i:I,ni:NI,nw:NW,io:IO,wo:WO,c:C}[k]}
+function isDone(n){return C.has(n)}
+function hasNoTick(n){return ![W,I,NI,NW,C].concat(XK.map(k=>X[k])).some(s=>s.has(n))}
 const TLAB2=[["i","imo-তে নক দিয়েছি"],["ni","imo-তে পাই নাই"],["w","WhatsApp-এ নক দিয়েছি"],["nw","WhatsApp-এ পাই নাই"],["io","imo-তে পেয়েছি, WhatsApp-এ পাই নাই"],["wo","WhatsApp-এ পেয়েছি, imo-তে পাই নাই"]];
 const TLAB=[["i","imo-তে নক দিয়েছি"],["w","WhatsApp-এ নক দিয়েছি"],["ni","imo-তে পাই নাই"],["nw","WhatsApp-এ পাই নাই"],["io","imo-তে পেয়েছি, WhatsApp-এ পাই নাই"]];
-function ticksHtml(n){return '<div class="ticks">'+TLAB2.slice(0,4).map(([k,t])=>'<label><input type="checkbox" data-k="'+k+'"'+(setOf(k).has(n)?" checked":"")+'> '+t+'</label>').join("")+'</div>'}
-function save(){try{localStorage.setItem(KEY,JSON.stringify([...done]));localStorage.setItem("numchecklist-w",JSON.stringify([...W]));localStorage.setItem("numchecklist-i",JSON.stringify([...I]));localStorage.setItem("numchecklist-ni",JSON.stringify([...NI]));localStorage.setItem("numchecklist-nw",JSON.stringify([...NW]));localStorage.setItem("numchecklist-io",JSON.stringify([...IO]));localStorage.setItem("numchecklist-wo",JSON.stringify([...WO]))}catch(e){}}
+const TLAB3=TLAB2.slice(0,4).concat([["m1i","1  IMO লাস্ট নাম্বার 50  মেসেজ দিছি"],["m2i","2 IMO লাস্ট নাম্বার 29 মেসেজ দিছি"],["m1w","1 WhatsApp লাস্ট নাম্বার 50 মেসেজ দিছি"],["m1b","1 WhatsApp business last number 30 মেসেজ দিছি"],["m2b","2 WhatsApp business লাস্ট নাম্বার 29 মেসেজ দিছি"],["none","কোনো কিছু খুঁজে পাই নাই"],["c","সব কমপ্লিট"]]);
+function ticksHtml(n){return '<div class="ticks">'+TLAB3.map(([k,t])=>'<label><input type="checkbox" data-k="'+k+'"'+(setOf(k).has(n)?" checked":"")+'> '+t+'</label>').join("")+'</div>'}
+function save(){try{localStorage.setItem(KEY,JSON.stringify([...done]));localStorage.setItem("numchecklist-w",JSON.stringify([...W]));localStorage.setItem("numchecklist-i",JSON.stringify([...I]));localStorage.setItem("numchecklist-ni",JSON.stringify([...NI]));localStorage.setItem("numchecklist-nw",JSON.stringify([...NW]));localStorage.setItem("numchecklist-io",JSON.stringify([...IO]));localStorage.setItem("numchecklist-wo",JSON.stringify([...WO]));localStorage.setItem("numchecklist-c",JSON.stringify([...C]));XK.forEach(k=>localStorage.setItem("numchecklist-"+k,JSON.stringify([...X[k]])))}catch(e){}}
 const DEFAULT_MSG="আসসালামু আলাইকুম ভাই, 9 উইকেট থেকে অনলাইন মাস্টারে আদিন খান বলছি।";
 let MSG=DEFAULT_MSG;
 try{MSG=localStorage.getItem("numchecklist-msg")||DEFAULT_MSG}catch(e){}
@@ -242,16 +269,18 @@ const WA_SVG='<svg viewBox="0 0 24 24" width="20" height="20" fill="#fff"><path 
 function waLink(n,pkg){const p=intl(n),t=encodeURIComponent(MSG);return IS_AND?"intent://send?phone="+p+"&text="+t+"#Intent;scheme=whatsapp;package="+pkg+";end":"https://wa.me/"+p+"?text="+t}
 function waBtns(n){return '<a class="ic wa" target="_blank" rel="noopener" title="WhatsApp" href="'+waLink(n,"com.whatsapp")+'">'+WA_SVG+'</a><a class="ic wa wb" target="_blank" rel="noopener" title="WhatsApp Business" href="'+waLink(n,"com.whatsapp.w4b")+'">'+WA_SVG+'<b class="bz">B</b></a>'}
 const list=document.getElementById("list");
+const TICK_FILTERS=["i","ni","w","nw","none","c"];
 function render(){
   const t=term.replace(/[\s\-+]/g,"");
   list.innerHTML="";
   NUMS.forEach((n,i)=>{
     const d=isDone(n);
-    if(filter==="todo"&&d)return;
-    if(filter==="done"&&!d)return;
+    if(filter==="todo"&&!hasNoTick(n))return;
+    if(TICK_FILTERS.includes(filter)&&!setOf(filter).has(n))return;
     if(t&&!n.replace(/[\s\-+]/g,"").includes(t))return;
     const li=document.createElement("li");
     if(d)li.className="done";
+    if(X.none.has(n))li.className+=" nf";
     if(!valid(n))li.className+=" bad";
     li.innerHTML='<span class="idx">'+(i+1)+'</span><span class="num">'+n+(valid(n)?'':'<small class="warn">⚠ অসম্পূর্ণ নাম্বার, WhatsApp নাও খুলতে পারে</small>')+'</span>'+waBtns(n)+'<a class="ic imo" target="_blank" rel="noopener" title="imo" href="'+imoUrl()+'">imo</a><button class="cp" title="নাম্বার কপি">📋</button>'+ticksHtml(n)+'';
     if(!FRAMED)li.querySelectorAll("a.ic").forEach(a=>a.removeAttribute("target"));
@@ -279,7 +308,7 @@ document.querySelectorAll(".tabs button").forEach(b=>b.onclick=()=>{
   document.querySelectorAll(".tabs button").forEach(x=>x.classList.remove("on"));
   b.classList.add("on");filter=b.dataset.f;render();
 });
-document.getElementById("reset").onclick=()=>{if(confirm("সব টিক মুছে ফেলবেন?")){done.clear();W.clear();I.clear();NI.clear();NW.clear();IO.clear();WO.clear();save();render()}};
+document.getElementById("reset").onclick=()=>{if(confirm("সব টিক মুছে ফেলবেন?")){done.clear();C.clear();XK.forEach(k=>X[k].clear());W.clear();I.clear();NI.clear();NW.clear();IO.clear();WO.clear();save();render()}};
 document.getElementById("addbtn").onclick=()=>{
   const box=document.getElementById("newnums");
   const items=box.value.split(/[\n,;]+/).map(s=>s.trim()).filter(Boolean);
@@ -291,6 +320,7 @@ document.getElementById("addbtn").onclick=()=>{
   render();
 };
 render();
+if("serviceWorker" in navigator&&location.protocol.startsWith("http")){window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}))}
 </script>
 </body>
 </html>
