@@ -222,6 +222,8 @@ try{W=new Set(JSON.parse(localStorage.getItem("numchecklist-w")||"[]"));I=new Se
 let NI=new Set(),NW=new Set(),IO=new Set(),WO=new Set();
 try{NI=new Set(JSON.parse(localStorage.getItem("numchecklist-ni")||"[]"));NW=new Set(JSON.parse(localStorage.getItem("numchecklist-nw")||"[]"));IO=new Set(JSON.parse(localStorage.getItem("numchecklist-io")||"[]"));WO=new Set(JSON.parse(localStorage.getItem("numchecklist-wo")||"[]"))}catch(e){}
 function setOf(k){return {w:W,i:I,ni:NI,nw:NW,io:IO,wo:WO}[k]}
+const ALL=[W,I,NI,NW,IO,WO];
+function isDone(n){return ALL.every(s=>s.has(n))}
 const TLAB2=[["i","imo-তে নক দিয়েছি"],["ni","imo-তে পাই নাই"],["w","WhatsApp-এ নক দিয়েছি"],["nw","WhatsApp-এ পাই নাই"],["io","imo-তে পেয়েছি, WhatsApp-এ পাই নাই"],["wo","WhatsApp-এ পেয়েছি, imo-তে পাই নাই"]];
 const TLAB=[["i","imo-তে নক দিয়েছি"],["w","WhatsApp-এ নক দিয়েছি"],["ni","imo-তে পাই নাই"],["nw","WhatsApp-এ পাই নাই"],["io","imo-তে পেয়েছি, WhatsApp-এ পাই নাই"]];
 function ticksHtml(n){return '<div class="ticks">'+TLAB2.map(([k,t])=>'<label><input type="checkbox" data-k="'+k+'"'+(setOf(k).has(n)?" checked":"")+'> '+t+'</label>').join("")+'</div>'}
@@ -232,6 +234,7 @@ try{MSG=localStorage.getItem("numchecklist-msg")||DEFAULT_MSG}catch(e){}
 const msgEl=document.getElementById("msg");
 msgEl.value=MSG;
 msgEl.oninput=()=>{MSG=msgEl.value;try{localStorage.setItem("numchecklist-msg",MSG)}catch(e){}render()};
+const FRAMED=(()=>{try{return window.self!==window.top}catch(e){return true}})();
 const IS_AND=/Android/i.test(navigator.userAgent);function imoUrl(){return IS_AND?"intent:#Intent;action=android.intent.action.SEND;type=text/plain;package=com.imo.android.imoim;S.android.intent.extra.TEXT="+encodeURIComponent(MSG)+";end":"imo://"}
 function intl(n){const d=n.replace(/\D/g,"");if(d.startsWith("88"))return d;if(d.startsWith("0"))return "88"+d;return d}
 function valid(n){return /^8801\d{9}$/.test(intl(n))}
@@ -243,7 +246,7 @@ function render(){
   const t=term.replace(/[\s\-+]/g,"");
   list.innerHTML="";
   NUMS.forEach((n,i)=>{
-    const d=done.has(n)||W.has(n)||I.has(n);
+    const d=isDone(n);
     if(filter==="todo"&&d)return;
     if(filter==="done"&&!d)return;
     if(t&&!n.replace(/[\s\-+]/g,"").includes(t))return;
@@ -251,6 +254,7 @@ function render(){
     if(d)li.className="done";
     if(!valid(n))li.className+=" bad";
     li.innerHTML='<span class="idx">'+(i+1)+'</span><span class="num">'+n+(valid(n)?'':'<small class="warn">⚠ অসম্পূর্ণ নাম্বার, WhatsApp নাও খুলতে পারে</small>')+'</span>'+waBtns(n)+'<a class="ic imo" target="_blank" rel="noopener" title="imo" href="'+imoUrl()+'">imo</a><button class="cp" title="নাম্বার কপি">📋</button>'+ticksHtml(n)+'';
+    if(!FRAMED)li.querySelectorAll("a.ic").forEach(a=>a.removeAttribute("target"));
     li.onclick=e=>{
       if(e.target.closest(".wa"))return;
       if(e.target.closest(".imo")){
@@ -266,7 +270,7 @@ function render(){
     };
     list.appendChild(li);
   });
-  const c=NUMS.filter(n=>done.has(n)||W.has(n)||I.has(n)).length;
+  const c=NUMS.filter(isDone).length;
   document.getElementById("stat").textContent="ব্যবহৃত: "+c+" / "+NUMS.length+" · বাকি: "+(NUMS.length-c)+" · WhatsApp: "+W.size+" · imo: "+I.size;
   document.getElementById("bar").style.width=(c/NUMS.length*100)+"%";
 }
