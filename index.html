@@ -49,7 +49,7 @@ li{flex-wrap:wrap}
 .ticks label:nth-child(n+5){grid-column:1/-1}
 .ticks label:last-child{font-weight:600}
 @keyframes shine{from{background-position:150% 0}to{background-position:-50% 0}}
-h1,.stat,.hint,.add summary,.ticks label,li:not(.done):not(.nf) .num,.tabs button span,#tg span,#reset span,#addbtn span{background-image:linear-gradient(110deg,var(--b,var(--text)) 40%,#c9a227 50%,var(--b,var(--text)) 60%);background-size:250% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;-webkit-text-fill-color:transparent;animation:shine 4s linear infinite}
+h1,.stat,.hint,.add summary,.tabs button span,#tg span,#reset span,#addbtn span{background-image:linear-gradient(110deg,var(--b,var(--text)) 40%,#c9a227 50%,var(--b,var(--text)) 60%);background-size:250% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;-webkit-text-fill-color:transparent;animation:shine 4s linear infinite}
 .stat,.hint{--b:var(--muted)}
 body,button,input,textarea,.stat,.hint,.ticks label{font-weight:800}
 .num,.add summary,h1{font-weight:900}
@@ -81,15 +81,17 @@ li{border:4.5px solid #0d9488;padding:12px 10px;gap:6px}
 .ic{width:30px;height:30px}
 .cp{padding:4px 7px}
 @keyframes aura{0%,100%{box-shadow:0 0 4px 1px var(--g)}50%{box-shadow:0 0 10px 3px var(--g)}}
-.ic{animation:aura 3.2s ease-in-out infinite}
+.ic{box-shadow:0 0 7px 2px var(--g)}
+li{content-visibility:auto;contain-intrinsic-size:auto 420px}
+li.leaving{opacity:0;transform:scale(.97);transition:opacity .4s,transform .4s}
 .ic.wa{--g:rgba(37,211,102,.55)}
 .ic.imo{--g:rgba(26,140,255,.55)}
 .ic.wb{--g:rgba(11,107,94,.6)}
 @media (prefers-reduced-motion:reduce){.ic{animation:none;box-shadow:0 0 6px 2px var(--g)}}
-.cp{--g:rgba(245,158,11,.6);width:32px;height:32px;padding:0;border-radius:50%;font-size:16px;line-height:1;display:inline-flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#fde68a,#f59e0b);border:2px solid #d97706;animation:aura 3.2s ease-in-out infinite;transition:transform .12s}
+.cp{--g:rgba(245,158,11,.6);width:32px;height:32px;padding:0;border-radius:50%;font-size:16px;line-height:1;display:inline-flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#fde68a,#f59e0b);border:2px solid #d97706;box-shadow:0 0 7px 2px var(--g);transition:transform .12s}
 .cp:active{transform:scale(.85)}
 input[type=checkbox]{-webkit-appearance:none;appearance:none;background:#fff;border:2px solid #475569;box-sizing:border-box;outline:0;border-radius:5px;position:relative;margin:0;-webkit-tap-highlight-color:transparent}
-input[type=checkbox]:checked{--g:rgba(37,99,235,.6);background:#2563eb;border-color:#2563eb;animation:aura 3s ease-in-out infinite}
+input[type=checkbox]:checked{--g:rgba(37,99,235,.6);background:#2563eb;border-color:#2563eb;box-shadow:0 0 7px 2px var(--g)}
 input[type=checkbox]:checked::after{content:"";position:absolute;left:33%;top:12%;width:30%;height:58%;border:solid #fff;border-width:0 3px 3px 0;transform:rotate(45deg)}
 </style>
 </head>
@@ -311,25 +313,41 @@ function render(){
     if(!valid(n))li.className+=" bad";
     li.innerHTML='<span class="idx">'+(i+1)+'</span><span class="num">'+n+(valid(n)?'':'<small class="warn">⚠ অসম্পূর্ণ নাম্বার, WhatsApp নাও খুলতে পারে</small>')+'</span>'+waBtns(n)+'<a class="ic imo" target="_blank" rel="noopener" title="imo" href="'+imoUrl()+'">imo</a><button class="cp" title="নাম্বার কপি">📋</button>'+ticksHtml(n)+'';
     if(!FRAMED)li.querySelectorAll("a.ic").forEach(a=>a.removeAttribute("target"));
-    li.onclick=e=>{
-      if(e.target.closest(".wa"))return;
-      if(e.target.closest(".imo")){
-        try{navigator.clipboard.writeText(MSG)}catch(x){}
-        const b=e.target.closest(".imo");b.textContent="✓";setTimeout(()=>b.textContent="imo",1200);return;
-      }
-      if(e.target.classList.contains("cp")){
-        try{navigator.clipboard.writeText(n)}catch(x){}
-        e.target.textContent="✓";setTimeout(()=>e.target.textContent="📋",900);return;
-      }
-      const cb=e.target.closest("input[data-k]");
-      if(cb){const s=setOf(cb.dataset.k);cb.checked?s.add(n):s.delete(n);save();render();}
-    };
+    li.dataset.n=n;
     list.appendChild(li);
   });
+  updateStat();
+}
+function updateStat(){
   const c=NUMS.filter(isDone).length;
   document.getElementById("stat").textContent="ব্যবহৃত: "+c+" / "+NUMS.length+" · বাকি: "+(NUMS.length-c)+" · WhatsApp: "+W.size+" · imo: "+I.size;
   document.getElementById("bar").style.width=(c/NUMS.length*100)+"%";
 }
+function matches(n){return (filter!=="todo"||hasNoTick(n))&&(!TICK_FILTERS.includes(filter)||setOf(filter).has(n))}
+list.addEventListener("click",e=>{
+  const li=e.target.closest("li");if(!li)return;
+  const n=li.dataset.n;
+  const im=e.target.closest(".imo");
+  if(im){try{navigator.clipboard.writeText(MSG)}catch(x){}im.textContent="✓";setTimeout(()=>im.textContent="imo",1200);return}
+  const cp=e.target.closest(".cp");
+  if(cp){try{navigator.clipboard.writeText(n)}catch(x){}cp.textContent="✓";setTimeout(()=>cp.textContent="📋",900)}
+});
+list.addEventListener("change",e=>{
+  const cb=e.target.closest("input[data-k]");if(!cb)return;
+  const li=cb.closest("li"),n=li.dataset.n,s=setOf(cb.dataset.k);
+  if(cb.checked)s.add(n);else s.delete(n);
+  save();
+  li.classList.toggle("done",isDone(n));
+  li.classList.toggle("nf",X.none.has(n));
+  updateStat();
+  clearTimeout(li._t);
+  li.classList.remove("leaving");
+  if(!matches(n)){
+    li._t=setTimeout(()=>{
+      if(!matches(n)){li.classList.add("leaving");li._t=setTimeout(()=>li.remove(),450)}
+    },1000);
+  }
+});
 document.getElementById("q").oninput=e=>{term=e.target.value;render()};
 let flabel="সব";
 const tgBtn=document.getElementById("tg"),panelEl=document.getElementById("panel");
