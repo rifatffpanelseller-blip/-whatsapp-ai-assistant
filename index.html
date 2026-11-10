@@ -49,12 +49,12 @@ li{flex-wrap:wrap}
 .ticks label:nth-child(n+5){grid-column:1/-1}
 .ticks label:last-child{font-weight:600}
 @keyframes shine{from{background-position:150% 0}to{background-position:-50% 0}}
-h1,.stat,.hint,.add summary,.ticks label,li:not(.done):not(.nf) .num,.tabs button span,#reset span,#addbtn span{background-image:linear-gradient(110deg,var(--b,var(--text)) 28%,#f0b400 44%,#b87900 50%,#f0b400 56%,var(--b,var(--text)) 72%);background-size:250% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;-webkit-text-fill-color:transparent;animation:shine 2.4s linear infinite}
+h1,.stat,.hint,.add summary,.ticks label,li:not(.done):not(.nf) .num,.tabs button span,#tg span,#reset span,#addbtn span{background-image:linear-gradient(110deg,var(--b,var(--text)) 40%,#c9a227 50%,var(--b,var(--text)) 60%);background-size:250% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;-webkit-text-fill-color:transparent;animation:shine 4s linear infinite}
 .stat,.hint{--b:var(--muted)}
 body,button,input,textarea,.stat,.hint,.ticks label{font-weight:800}
 .num,.add summary,h1{font-weight:900}
 .ticks label:last-child{font-weight:900}
-h1{background-image:linear-gradient(110deg,#8a6508 26%,#ffd23f 46%,#fff0a0 50%,#ffd23f 54%,#8a6508 74%)}
+h1{background-image:linear-gradient(110deg,#8a6508 38%,#d9b13a 50%,#8a6508 62%)}
 .tabs button.on span{background:none;-webkit-text-fill-color:#fff;color:#fff;animation:none}
 .warn{-webkit-text-fill-color:#d97706}
 @media (prefers-reduced-motion:reduce){h1,.stat,.hint,.add summary,.ticks label,li .num,.tabs button span,#reset span,#addbtn span{animation:none}}
@@ -66,14 +66,40 @@ li.bad .wa{opacity:.55}
 .add{margin-top:10px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px 12px}
 .add summary{cursor:pointer;font-weight:600}
 .add button{margin-top:8px}
+.top{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+.top .stat{flex:1;margin:0;font-size:13px}
+#tg{flex:none;padding:6px 12px;font-size:13px;white-space:nowrap}
+#tg.open{background:var(--accent);border-color:var(--accent)}
+#tg.open span{background:none;-webkit-text-fill-color:#fff;color:#fff;animation:none}
+#panel{display:none;max-height:72vh;overflow-y:auto;margin-top:8px;padding-bottom:6px}
+#panel.open{display:block}
+#panel h1{margin-top:2px}
+li{border:4.5px solid #0d9488;padding:12px 10px;gap:6px}
+.num{white-space:nowrap;font-size:16px;min-width:0}
+.warn{white-space:normal}
+.idx{width:18px}
+.ic{width:30px;height:30px}
+.cp{padding:4px 7px}
+@keyframes aura{0%,100%{box-shadow:0 0 4px 1px var(--g)}50%{box-shadow:0 0 10px 3px var(--g)}}
+.ic{animation:aura 3.2s ease-in-out infinite}
+.ic.wa{--g:rgba(37,211,102,.55)}
+.ic.imo{--g:rgba(26,140,255,.55)}
+.ic.wb{--g:rgba(11,107,94,.6)}
+@media (prefers-reduced-motion:reduce){.ic{animation:none;box-shadow:0 0 6px 2px var(--g)}}
+.cp{--g:rgba(245,158,11,.6);width:32px;height:32px;padding:0;border-radius:50%;font-size:16px;line-height:1;display:inline-flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#fde68a,#f59e0b);border:2px solid #d97706;animation:aura 3.2s ease-in-out infinite;transition:transform .12s}
+.cp:active{transform:scale(.85)}
+input[type=checkbox]{-webkit-appearance:none;appearance:none;background:#fff;border:2px solid #475569;box-sizing:border-box;outline:0;border-radius:5px;position:relative;margin:0;-webkit-tap-highlight-color:transparent}
+input[type=checkbox]:checked{--g:rgba(37,99,235,.6);background:#2563eb;border-color:#2563eb;animation:aura 3s ease-in-out infinite}
+input[type=checkbox]:checked::after{content:"";position:absolute;left:33%;top:12%;width:30%;height:58%;border:solid #fff;border-width:0 3px 3px 0;transform:rotate(45deg)}
 </style>
 </head>
 <body>
 <div class="wrap">
 <header>
-<h1>📞 নাম্বার চেকলিস্ট</h1>
-<div class="stat" id="stat"></div>
+<div class="top"><div class="stat" id="stat"></div><button id="tg" aria-expanded="false"><span>⚙ সব ▾</span></button></div>
 <div class="bar"><i id="bar"></i></div>
+<div id="panel">
+<h1>📞 নাম্বার চেকলিস্ট</h1>
 <input type="search" id="q" placeholder="নাম্বার খুঁজুন…">
 <textarea id="msg" placeholder="পাঠানোর মেসেজ"></textarea>
 <div class="hint">WhatsApp বোতামে চাপলে এই মেসেজসহ চ্যাট খুলবে। imo বোতামে চাপলে মেসেজ কপি হয়ে imo অ্যাপ খুলবে, সেখানে পেস্ট করুন।</div>
@@ -87,8 +113,9 @@ li.bad .wa{opacity:.55}
 <button data-f="none"><span>কোনো কিছু খুঁজে পাই নাই</span></button>
 <button data-f="c"><span>সব কমপ্লিট</span></button>
 </div>
-</header>
 <details class="add"><summary>➕ নতুন নাম্বার যোগ করুন</summary><textarea id="newnums" placeholder="এখানে নাম্বার পেস্ট করুন, প্রতি লাইনে একটা"></textarea><button id="addbtn"><span>যোগ করুন</span></button> <span id="addmsg" class="hint"></span></details>
+</div>
+</header>
 <ul id="list"></ul>
 <div class="foot"><button id="reset"><span>সব টিক মুছুন</span></button></div>
 </div>
@@ -304,9 +331,13 @@ function render(){
   document.getElementById("bar").style.width=(c/NUMS.length*100)+"%";
 }
 document.getElementById("q").oninput=e=>{term=e.target.value;render()};
+let flabel="সব";
+const tgBtn=document.getElementById("tg"),panelEl=document.getElementById("panel");
+function setTg(){const o=panelEl.classList.contains("open");tgBtn.classList.toggle("open",o);tgBtn.setAttribute("aria-expanded",o);tgBtn.firstElementChild.textContent=o?"▴ ছোট করুন":"⚙ "+flabel+" ▾"}
+tgBtn.onclick=()=>{panelEl.classList.toggle("open");setTg()};
 document.querySelectorAll(".tabs button").forEach(b=>b.onclick=()=>{
   document.querySelectorAll(".tabs button").forEach(x=>x.classList.remove("on"));
-  b.classList.add("on");filter=b.dataset.f;render();
+  b.classList.add("on");filter=b.dataset.f;flabel=b.textContent.trim();panelEl.classList.remove("open");setTg();render();window.scrollTo(0,0);
 });
 document.getElementById("reset").onclick=()=>{if(confirm("সব টিক মুছে ফেলবেন?")){done.clear();C.clear();XK.forEach(k=>X[k].clear());W.clear();I.clear();NI.clear();NW.clear();IO.clear();WO.clear();save();render()}};
 document.getElementById("addbtn").onclick=()=>{
