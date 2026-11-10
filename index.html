@@ -222,11 +222,11 @@ try{W=new Set(JSON.parse(localStorage.getItem("numchecklist-w")||"[]"));I=new Se
 let NI=new Set(),NW=new Set(),IO=new Set(),WO=new Set();
 try{NI=new Set(JSON.parse(localStorage.getItem("numchecklist-ni")||"[]"));NW=new Set(JSON.parse(localStorage.getItem("numchecklist-nw")||"[]"));IO=new Set(JSON.parse(localStorage.getItem("numchecklist-io")||"[]"));WO=new Set(JSON.parse(localStorage.getItem("numchecklist-wo")||"[]"))}catch(e){}
 function setOf(k){return {w:W,i:I,ni:NI,nw:NW,io:IO,wo:WO}[k]}
-const ALL=[W,I,NI,NW,IO,WO];
+const ALL=[W,I,NI,NW];
 function isDone(n){return ALL.every(s=>s.has(n))}
 const TLAB2=[["i","imo-তে নক দিয়েছি"],["ni","imo-তে পাই নাই"],["w","WhatsApp-এ নক দিয়েছি"],["nw","WhatsApp-এ পাই নাই"],["io","imo-তে পেয়েছি, WhatsApp-এ পাই নাই"],["wo","WhatsApp-এ পেয়েছি, imo-তে পাই নাই"]];
 const TLAB=[["i","imo-তে নক দিয়েছি"],["w","WhatsApp-এ নক দিয়েছি"],["ni","imo-তে পাই নাই"],["nw","WhatsApp-এ পাই নাই"],["io","imo-তে পেয়েছি, WhatsApp-এ পাই নাই"]];
-function ticksHtml(n){return '<div class="ticks">'+TLAB2.map(([k,t])=>'<label><input type="checkbox" data-k="'+k+'"'+(setOf(k).has(n)?" checked":"")+'> '+t+'</label>').join("")+'</div>'}
+function ticksHtml(n){return '<div class="ticks">'+TLAB2.slice(0,4).map(([k,t])=>'<label><input type="checkbox" data-k="'+k+'"'+(setOf(k).has(n)?" checked":"")+'> '+t+'</label>').join("")+'</div>'}
 function save(){try{localStorage.setItem(KEY,JSON.stringify([...done]));localStorage.setItem("numchecklist-w",JSON.stringify([...W]));localStorage.setItem("numchecklist-i",JSON.stringify([...I]));localStorage.setItem("numchecklist-ni",JSON.stringify([...NI]));localStorage.setItem("numchecklist-nw",JSON.stringify([...NW]));localStorage.setItem("numchecklist-io",JSON.stringify([...IO]));localStorage.setItem("numchecklist-wo",JSON.stringify([...WO]))}catch(e){}}
 const DEFAULT_MSG="আসসালামু আলাইকুম ভাই, 9 উইকেট থেকে অনলাইন মাস্টারে আদিন খান বলছি।";
 let MSG=DEFAULT_MSG;
