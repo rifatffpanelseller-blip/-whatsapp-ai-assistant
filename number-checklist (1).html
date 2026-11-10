@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>নাম্বার চেকলিস্ট</title>
+<style>
+:root{--bg:#f6f7f9;--card:#fff;--text:#1a1d21;--muted:#6b7280;--line:#e5e7eb;--accent:#16a34a;--accentbg:#dcfce7;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#111315;--card:#1b1e22;--text:#e8eaed;--muted:#9aa0a6;--line:#2c3036;--accent:#4ade80;--accentbg:#14301f}}
+:root[data-theme="dark"]{--bg:#111315;--card:#1b1e22;--text:#e8eaed;--muted:#9aa0a6;--line:#2c3036;--accent:#4ade80;--accentbg:#14301f}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,"Noto Sans Bengali",sans-serif}
+.wrap{max-width:560px;margin:0 auto;padding:12px}
+header{position:sticky;top:env(safe-area-inset-top,0px);background:var(--bg);padding:8px 0;z-index:5}
+h1{font-size:20px;margin:0 0 6px}
+.stat{color:var(--muted);font-size:14px;margin-bottom:8px}
+.bar{height:8px;background:var(--line);border-radius:4px;overflow:hidden;margin-bottom:10px}
+.bar>i{display:block;height:100%;width:0;background:var(--accent);transition:width .2s}
+input[type=search]{width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--card);color:var(--text);font-size:16px;box-sizing:border-box}
+.tabs{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap}
+button{font:inherit;font-size:14px;padding:7px 12px;border:1px solid var(--line);background:var(--card);color:var(--text);border-radius:999px;cursor:pointer}
+button.on{background:var(--accent);color:#fff;border-color:var(--accent)}
+ul{list-style:none;margin:8px 0 0;padding:0}
+li{display:flex;align-items:center;gap:12px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px;margin-bottom:6px;cursor:pointer;-webkit-tap-highlight-color:transparent}
+li.done{background:var(--accentbg)}
+li.done .num{text-decoration:line-through;color:var(--muted)}
+input[type=checkbox]{width:24px;height:24px;accent-color:var(--accent);flex:none}
+.idx{color:var(--muted);font-size:12px;width:28px;flex:none;text-align:right}
+.num{flex:1;font-size:17px;font-variant-numeric:tabular-nums}
+.cp{padding:5px 10px;font-size:12px}
+.foot{display:flex;justify-content:center;margin:16px 0}
+li{gap:8px}
+.ic{display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:50%;flex:none;border:0;padding:0;color:#fff;font-weight:700;font-size:12px;text-decoration:none;cursor:pointer}
+.wa{background:#25d366}
+.imo{background:#1a8cff;font-size:11px;font-style:italic}
+.cp{padding:5px 8px;font-size:14px}
+textarea{width:100%;box-sizing:border-box;margin-top:8px;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--card);color:var(--text);font:inherit;font-size:14px;resize:vertical;min-height:64px}
+.hint{font-size:12px;color:var(--muted);margin-top:4px}
+li{flex-wrap:wrap}
+.ticks{flex-basis:100%;display:grid;grid-template-columns:1fr 1fr;gap:12px 10px;padding-left:36px;font-size:13px}
+.ticks label{align-items:flex-start}
+.ticks label{display:flex;align-items:center;gap:6px;cursor:pointer}
+.ticks input{width:20px;height:20px}
+.warn{display:block;font-size:11px;color:#d97706;font-weight:600}
+li.bad .wa{opacity:.55}
+.wb{position:relative;background:#0b6b5e}
+.bz{position:absolute;right:-3px;bottom:-3px;background:#fff;color:#0b6b5e;border-radius:50%;width:15px;height:15px;font-size:10px;line-height:15px;text-align:center;font-style:normal}
+.ic{width:32px;height:32px}
+.add{margin-top:10px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px 12px}
+.add summary{cursor:pointer;font-weight:600}
+.add button{margin-top:8px}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+<h1>📞 নাম্বার চেকলিস্ট</h1>
+<div class="stat" id="stat"></div>
+<div class="bar"><i id="bar"></i></div>
+<input type="search" id="q" placeholder="নাম্বার খুঁজুন…">
+<textarea id="msg" placeholder="পাঠানোর মেসেজ"></textarea>
+<div class="hint">WhatsApp বোতামে চাপলে এই মেসেজসহ চ্যাট খুলবে। imo বোতামে চাপলে মেসেজ কপি হয়ে imo অ্যাপ খুলবে, সেখানে পেস্ট করুন।</div>
+<div class="tabs">
+<button data-f="all" class="on">সব</button>
+<button data-f="todo">বাকি</button>
+<button data-f="done">ব্যবহৃত</button>
+</div>
+</header>
+<details class="add"><summary>➕ নতুন নাম্বার যোগ করুন</summary><textarea id="newnums" placeholder="এখানে নাম্বার পেস্ট করুন, প্রতি লাইনে একটা"></textarea><button id="addbtn">যোগ করুন</button> <span id="addmsg" class="hint"></span></details>
+<ul id="list"></ul>
+<div class="foot"><button id="reset">সব টিক মুছুন</button></div>
+</div>
+<script>
+const RAW=`+88 01907335495
++880 1304-503994
++880 1306-185887
++880 1308-205872
++880 1311-182925
++880 1315-687967
++880 1321-322768
++880 1323-159795
++880 1323-174976
++880 1323-195143
++880 1326-249548
++880 1328-183115
++880 1400-899500
++880 1402-316283
++880 1568-235737
++880 1602-662659
++880 1607-959452
++880 1609-931049
++880 1611-015540
++880 1612-216754
++880 1612-849877
++880 1613-034942
++880 1617-086774
++880 1621-919024
++880 1624-999859
++880 1626-428250
++880 1626-746768
++880 1628-765322
++880 1631-513670
++880 1636-26758
++880 1642-568791
++880 1644-350162
++880 1647-748755
++880 1677-345582
++880 1704-581433
++880 1708-563694
++880 1708-595429
++880 1717-323370
++880 1721-174911
++880 1725-075832
++880 1726-041203
++880 1726-717502
++880 1727-901994
++880 1730-198466
++880 1731-059792
++880 1736-969439
++880 1737-375074
++880 1737-669619
++880 1737-907158
++880 1738-533253
++880 1739-672580
++880 1743-086351
++880 1744-627512
++880 1745-846088
++880 1746-572223
++880 1747-289200
++880 1747-771723
++880 1747-779600
++880 1752-154836
++880 1757-408069
++880 1758-050169
++880 1761-159222
++880 1761-563935
++880 1763-528593
++880 1766-997425
++880 1770-547680
++880 1771-408918
++880 1771-551764
++880 1771-73853
++880 1776-730320
++880 1780-919487
++880 1782-787127
++880 1783-645805
++880 1784-447109
++880 1784-652413
++880 1789-676460
++880 1790-354394
++880 1792-171472
++880 1793-217560
++880 1794-069343
++880 1795-689635
++880 1796-413613
++880 1797-381906
++880 1799-719534
++880 1810-584047
++880 1817-154387
++880 1819-914621
++880 1824-701961
++880 1834-481678
++880 1841-447036
++880 1842-988518
++880 1847-692300
++880 1848-560153
++880 1856-832100
++880 1859-74665
++880 1863-743645
++880 1865-125292
++880 1873-645805
++880 1876-347886
++880 1881-343318
++880 1888-288728
++880 1888-648355
++880 1890-893070
++880 1891-106746
++880 1892-747584
++880 1897-297701
++880 1910-582472
++880 1914-004849
++880 1917-363280
++880 1923-978656
++880 1924-949962
++880 1930-366875
++880 1930-876425
++880 1930-981131
++880 1931-988926
++880 1933-848341
++880 1939-101362
++880 1941-613120
++880 1942-056578
++880 1946-975807
++880 1954-37689
++880 1964-132009
++880 1964-467511
++880 1968-943512
++880 1969-796965
++880 1970-656917
++880 1972-863307
++880 1975-024214
++880 1982-770295
++880 1985-73029
++880 1992-934078
++880 1993-206240
++880 1997-983436
++880 1998-213612
++880 571-169509
+9664128961
+01408-284922
+01823-658963
++880 1833-45111
+01819-639491`;
+let extra=[];
+try{extra=JSON.parse(localStorage.getItem("numchecklist-extra")||"[]")}catch(e){}
+let NUMS=[...new Set(RAW.split("\n").concat(extra).map(s=>s.trim()).filter(Boolean))];
+const KEY="numchecklist-v1";
+let done=new Set(),filter="all",term="";
+try{done=new Set(JSON.parse(localStorage.getItem(KEY)||"[]"))}catch(e){}
+let W=new Set(),I=new Set();
+try{W=new Set(JSON.parse(localStorage.getItem("numchecklist-w")||"[]"));I=new Set(JSON.parse(localStorage.getItem("numchecklist-i")||"[]"))}catch(e){}
+let NI=new Set(),NW=new Set(),IO=new Set(),WO=new Set();
+try{NI=new Set(JSON.parse(localStorage.getItem("numchecklist-ni")||"[]"));NW=new Set(JSON.parse(localStorage.getItem("numchecklist-nw")||"[]"));IO=new Set(JSON.parse(localStorage.getItem("numchecklist-io")||"[]"));WO=new Set(JSON.parse(localStorage.getItem("numchecklist-wo")||"[]"))}catch(e){}
+function setOf(k){return {w:W,i:I,ni:NI,nw:NW,io:IO,wo:WO}[k]}
+const TLAB2=[["i","imo-তে নক দিয়েছি"],["ni","imo-তে পাই নাই"],["w","WhatsApp-এ নক দিয়েছি"],["nw","WhatsApp-এ পাই নাই"],["io","imo-তে পেয়েছি, WhatsApp-এ পাই নাই"],["wo","WhatsApp-এ পেয়েছি, imo-তে পাই নাই"]];
+const TLAB=[["i","imo-তে নক দিয়েছি"],["w","WhatsApp-এ নক দিয়েছি"],["ni","imo-তে পাই নাই"],["nw","WhatsApp-এ পাই নাই"],["io","imo-তে পেয়েছি, WhatsApp-এ পাই নাই"]];
+function ticksHtml(n){return '<div class="ticks">'+TLAB2.map(([k,t])=>'<label><input type="checkbox" data-k="'+k+'"'+(setOf(k).has(n)?" checked":"")+'> '+t+'</label>').join("")+'</div>'}
+function save(){try{localStorage.setItem(KEY,JSON.stringify([...done]));localStorage.setItem("numchecklist-w",JSON.stringify([...W]));localStorage.setItem("numchecklist-i",JSON.stringify([...I]));localStorage.setItem("numchecklist-ni",JSON.stringify([...NI]));localStorage.setItem("numchecklist-nw",JSON.stringify([...NW]));localStorage.setItem("numchecklist-io",JSON.stringify([...IO]));localStorage.setItem("numchecklist-wo",JSON.stringify([...WO]))}catch(e){}}
+const DEFAULT_MSG="আসসালামু আলাইকুম ভাই, 9 উইকেট থেকে অনলাইন মাস্টারে আদিন খান বলছি।";
+let MSG=DEFAULT_MSG;
+try{MSG=localStorage.getItem("numchecklist-msg")||DEFAULT_MSG}catch(e){}
+const msgEl=document.getElementById("msg");
+msgEl.value=MSG;
+msgEl.oninput=()=>{MSG=msgEl.value;try{localStorage.setItem("numchecklist-msg",MSG)}catch(e){}render()};
+const IS_AND=/Android/i.test(navigator.userAgent);function imoUrl(){return IS_AND?"intent:#Intent;action=android.intent.action.SEND;type=text/plain;package=com.imo.android.imoim;S.android.intent.extra.TEXT="+encodeURIComponent(MSG)+";end":"imo://"}
+function intl(n){const d=n.replace(/\D/g,"");if(d.startsWith("88"))return d;if(d.startsWith("0"))return "88"+d;return d}
+function valid(n){return /^8801\d{9}$/.test(intl(n))}
+const WA_SVG='<svg viewBox="0 0 24 24" width="20" height="20" fill="#fff"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2zm0 18.2a8.2 8.2 0 0 1-4.2-1.2l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2zm4.5-6.1c-.2-.1-1.5-.7-1.7-.8-.2-.1-.4-.1-.6.1l-.8 1c-.1.2-.3.2-.5.1a6.700 6.700 0 0 1-3.300-2.900c-.2-.4.200-.4.700-1.300.1-.2 0-.3 0-.5l-.8-1.800c-.2-.5-.4-.4-.6-.4h-.5a1 1 0 0 0-.7.3 3 3 0 0 0-.9 2.200c0 1.300.9 2.500 1 2.700.1.200 1.800 2.800 4.400 3.900 1.600.7 2.300.7 3.100.6.500-.1 1.500-.6 1.700-1.200.2-.6.2-1.100.2-1.200-.1-.1-.3-.2-.5-.3z"/></svg>';
+function waLink(n,pkg){const p=intl(n),t=encodeURIComponent(MSG);return IS_AND?"intent://send?phone="+p+"&text="+t+"#Intent;scheme=whatsapp;package="+pkg+";end":"https://wa.me/"+p+"?text="+t}
+function waBtns(n){return '<a class="ic wa" target="_blank" rel="noopener" title="WhatsApp" href="'+waLink(n,"com.whatsapp")+'">'+WA_SVG+'</a><a class="ic wa wb" target="_blank" rel="noopener" title="WhatsApp Business" href="'+waLink(n,"com.whatsapp.w4b")+'">'+WA_SVG+'<b class="bz">B</b></a>'}
+const list=document.getElementById("list");
+function render(){
+  const t=term.replace(/[\s\-+]/g,"");
+  list.innerHTML="";
+  NUMS.forEach((n,i)=>{
+    const d=done.has(n)||W.has(n)||I.has(n);
+    if(filter==="todo"&&d)return;
+    if(filter==="done"&&!d)return;
+    if(t&&!n.replace(/[\s\-+]/g,"").includes(t))return;
+    const li=document.createElement("li");
+    if(d)li.className="done";
+    if(!valid(n))li.className+=" bad";
+    li.innerHTML='<span class="idx">'+(i+1)+'</span><span class="num">'+n+(valid(n)?'':'<small class="warn">⚠ অসম্পূর্ণ নাম্বার, WhatsApp নাও খুলতে পারে</small>')+'</span>'+waBtns(n)+'<a class="ic imo" target="_blank" rel="noopener" title="imo" href="'+imoUrl()+'">imo</a><button class="cp" title="নাম্বার কপি">📋</button>'+ticksHtml(n)+'';
+    li.onclick=e=>{
+      if(e.target.closest(".wa"))return;
+      if(e.target.closest(".imo")){
+        try{navigator.clipboard.writeText(MSG)}catch(x){}
+        const b=e.target.closest(".imo");b.textContent="✓";setTimeout(()=>b.textContent="imo",1200);return;
+      }
+      if(e.target.classList.contains("cp")){
+        try{navigator.clipboard.writeText(n)}catch(x){}
+        e.target.textContent="✓";setTimeout(()=>e.target.textContent="📋",900);return;
+      }
+      const cb=e.target.closest("input[data-k]");
+      if(cb){const s=setOf(cb.dataset.k);cb.checked?s.add(n):s.delete(n);save();render();}
+    };
+    list.appendChild(li);
+  });
+  const c=NUMS.filter(n=>done.has(n)||W.has(n)||I.has(n)).length;
+  document.getElementById("stat").textContent="ব্যবহৃত: "+c+" / "+NUMS.length+" · বাকি: "+(NUMS.length-c)+" · WhatsApp: "+W.size+" · imo: "+I.size;
+  document.getElementById("bar").style.width=(c/NUMS.length*100)+"%";
+}
+document.getElementById("q").oninput=e=>{term=e.target.value;render()};
+document.querySelectorAll(".tabs button").forEach(b=>b.onclick=()=>{
+  document.querySelectorAll(".tabs button").forEach(x=>x.classList.remove("on"));
+  b.classList.add("on");filter=b.dataset.f;render();
+});
+document.getElementById("reset").onclick=()=>{if(confirm("সব টিক মুছে ফেলবেন?")){done.clear();W.clear();I.clear();NI.clear();NW.clear();IO.clear();WO.clear();save();render()}};
+document.getElementById("addbtn").onclick=()=>{
+  const box=document.getElementById("newnums");
+  const items=box.value.split(/[\n,;]+/).map(s=>s.trim()).filter(Boolean);
+  let added=0,dup=0;
+  items.forEach(n=>{if(NUMS.includes(n)||extra.includes(n)){dup++}else{extra.push(n);NUMS.push(n);added++}});
+  try{localStorage.setItem("numchecklist-extra",JSON.stringify(extra))}catch(e){}
+  box.value="";
+  document.getElementById("addmsg").textContent=added+"টা যোগ হয়েছে"+(dup?", "+dup+"টা আগে থেকেই ছিল":"");
+  render();
+};
+render();
+</script>
+</body>
+</html>
